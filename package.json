@@ -11,18 +11,26 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.sayHello"
+		"onCommand:extension.sqlConnect",
+		"onCommand:extension.sqlDisconnect"
 	],
 	"main": "./out/src/extension",
 	"contributes": {
 		"commands": [{
-			"command": "extension.sayHello",
-			"title": "Hello World"
+			"command": "extension.sqlConnect",
+			"title": "Connect SQL"
+		},
+		{
+			"command": "extension.sqlDisconnect",
+			"title": "Disconnect SQL"
 		}]
 	},
 	"scripts": {
 		"vscode:prepublish": "node ./node_modules/vscode/bin/compile",
 		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+	},
+	"dependencies": {
+		"mssql": "2.3.2"
 	},
 	"devDependencies": {
 		"typescript": "^1.6.2",
