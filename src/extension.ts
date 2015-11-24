@@ -15,62 +15,66 @@ export function activate(context: vscode.ExtensionContext) {
 	// The commandId parameter must match the command field in package.json
 	var disposable = vscode.commands.registerCommand('extension.sqlConnect', () => {
 		// The code you place here will be executed every time your command is executed
-		var mssql = require('mssql');
-		var connection = null;
-		var config: any = {};
-		askQuestion({
-			placeHolder: "hostname\\instance",
-			prompt: "Enter hostname and optional instance name"
-		}).then((host) => {
-			config.server = host;
-			return askQuestion({
-				placeHolder: "Username",
-				prompt: "Enter username"
-			});
-		}).then((user) => {
-			config.user = user;
-			return askQuestion({
-				password: true,
-				placeHolder: "Password",
-				prompt: "Enter password"
-			});
-		}).then((password) => {
-			config.password = password;
-			connection = new mssql.Connection(config, function(err) {
-				console.log("ERROR: " + err);
-			});
-		}).then(() => {
-			var output = vscode.window.createOutputChannel("sql");
-			output.show(vscode.ViewColumn.Two);
-			output.appendLine(`Connecting to server: ${config.server}`);
-			loop((next, cancel) => {
-				return askQuestion({
-					placeHolder: "SQL"
-				}).then((sql) => {
-					output.appendLine(`SQL: ${sql}`);
-					var request = new mssql.Request(connection);
-					request.query(sql, function(err, recordset) {
-						if (err) {
-							output.appendLine(err);
-							next();
-						}
-						if (!recordset) {
-							next();
-							return;
-						}
-						showResult(output, recordset);
-						next();
-					});
-				}).catch(() => {
-					cancel();
-				})
-			}, () => {
-				connection.close();
-			});
-		}).catch(() => {});
+		connectCommand();
 	});
 
 	context.subscriptions.push(disposable);
+}
+
+function connectCommand() {
+	var mssql = require('mssql');
+	var connection = null;
+	var config: any = {};
+	askQuestion({
+		placeHolder: "hostname\\instance",
+		prompt: "Enter hostname and optional instance name"
+	}).then((host) => {
+		config.server = host;
+		return askQuestion({
+			placeHolder: "Username",
+			prompt: "Enter username"
+		});
+	}).then((user) => {
+		config.user = user;
+		return askQuestion({
+			password: true,
+			placeHolder: "Password",
+			prompt: "Enter password"
+		});
+	}).then((password) => {
+		config.password = password;
+		connection = new mssql.Connection(config, function(err) {
+			console.log("ERROR: " + err);
+		});
+	}).then(() => {
+		var output = vscode.window.createOutputChannel("sql");
+		output.show(vscode.ViewColumn.Two);
+		output.appendLine(`Connecting to server: ${config.server}`);
+		loop((next, cancel) => {
+			return askQuestion({
+				placeHolder: "SQL"
+			}).then((sql) => {
+				output.appendLine(`SQL: ${sql}`);
+				var request = new mssql.Request(connection);
+				request.query(sql, function(err, recordset) {
+					if (err) {
+						output.appendLine(err);
+						next();
+					}
+					if (!recordset) {
+						next();
+						return;
+					}
+					showResult(output, recordset);
+					next();
+				});
+			}).catch(() => {
+				cancel();
+			})
+		}, () => {
+			connection.close();
+		});
+	}).catch(() => { });
 }
 
 function askQuestion(options: vscode.InputBoxOptions) {
