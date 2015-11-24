@@ -18,18 +18,18 @@ export function activate(context: vscode.ExtensionContext) {
 		var mssql = require('mssql');
 		var connection = null;
 		var config: any = {};
-		vscode.window.showInputBox({
+		askQuestion({
 			placeHolder: "hostname\\instance",
 			prompt: "Enter hostname and optional instance name"
 		}).then((host) => {
 			config.server = host;
-			return vscode.window.showInputBox({
+			return askQuestion({
 				placeHolder: "Username",
 				prompt: "Enter username"
 			});
 		}).then((user) => {
 			config.user = user;
-			return vscode.window.showInputBox({
+			return askQuestion({
 				password: true,
 				placeHolder: "Password",
 				prompt: "Enter password"
@@ -42,38 +42,62 @@ export function activate(context: vscode.ExtensionContext) {
 		}).then(() => {
 			var output = vscode.window.createOutputChannel("sql");
 			output.show(vscode.ViewColumn.Two);
-			output.appendLine("Connecting to server");
-
-			loop();
-
-			function loop() {
-				return vscode.window.showInputBox({
+			output.appendLine(`Connecting to server: ${config.server}`);
+			loop((next, cancel) => {
+				return askQuestion({
 					placeHolder: "SQL"
 				}).then((sql) => {
-					if (sql !== undefined) {
-						output.appendLine("SQL: " + sql);
-						var request = new mssql.Request(connection);
-						request.query(sql, function(err, recordset) {
-							if (!recordset) {
-								loop();
-								return;
-							}
-							for (var row of recordset) {
-								output.append("|")
-								for (var col in row) {
-									output.append(` ${row[col]} |`)
-								}
-								output.appendLine("");
-							}
-							loop();
-						});
-					} else {
-						connection.close();
-					}
-				});
-			}
-		});
+					output.appendLine(`SQL: ${sql}`);
+					var request = new mssql.Request(connection);
+					request.query(sql, function(err, recordset) {
+						if (err) {
+							output.appendLine(err);
+							next();
+						}
+						if (!recordset) {
+							next();
+							return;
+						}
+						showResult(output, recordset);
+						next();
+					});
+				}).catch(() => {
+					cancel();
+				})
+			}, () => {
+				connection.close();
+			});
+		}).catch(() => {});
 	});
 
 	context.subscriptions.push(disposable);
+}
+
+function askQuestion(options: vscode.InputBoxOptions) {
+	return new Promise<string>((resolve, reject) => {
+		vscode.window.showInputBox(options).then((input) => {
+			if (input !== undefined) {
+				resolve(input);
+			} else {
+				reject();
+			}
+		})
+	});
+}
+
+type actionFunc = () => void;
+type loopFunc = (next: actionFunc, cancel?: actionFunc) => void;
+
+function loop(func: loopFunc, cancelFunc: actionFunc) {
+	func(() => loop(func, cancelFunc), cancelFunc);
+}
+
+function showResult(output: vscode.OutputChannel, recordset) {
+	for (var row of recordset) {
+		output.append("|")
+		for (var col in row) {
+			output.append(` ${row[col]} |`)
+		}
+		output.appendLine("");
+	}
 }
