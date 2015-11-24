@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode'; 
+import * as vscode from 'vscode';
+var mssql = require('mssql');
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -21,63 +22,56 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 }
 
-function connectCommand() {
-	var mssql = require('mssql');
-	var connection = null;
+async function connectCommand() {
 	var config: any = {};
-	askQuestion({
-		placeHolder: "hostname\\instance",
-		prompt: "Enter hostname and optional instance name"
-	}).then((host) => {
-		config.server = host;
-		return askQuestion({
+
+	try {
+		config.server = await askQuestion({
+			placeHolder: "hostname\\instance",
+			prompt: "Enter hostname and optional instance name"
+		});
+		config.user = await askQuestion({
 			placeHolder: "Username",
 			prompt: "Enter username"
 		});
-	}).then((user) => {
-		config.user = user;
-		return askQuestion({
+		config.password = await askQuestion({
 			password: true,
 			placeHolder: "Password",
 			prompt: "Enter password"
 		});
-	}).then((password) => {
-		config.password = password;
-		connection = new mssql.Connection(config, function(err) {
-			console.log("ERROR: " + err);
-		});
-	}).then(() => {
-		var output = vscode.window.createOutputChannel("sql");
-		output.show(vscode.ViewColumn.Two);
-		output.appendLine(`Connecting to server: ${config.server}`);
-		loop((next, cancel) => {
-			return askQuestion({
-				placeHolder: "SQL"
-			}).then((sql) => {
-				output.appendLine(`SQL: ${sql}`);
-				var request = new mssql.Request(connection);
-				request.query(sql, function(err, recordset) {
-					if (err) {
-						output.appendLine(err);
-						next();
-					}
-					if (!recordset) {
-						next();
-						return;
-					}
-					showResult(output, recordset);
-					next();
-				});
-			}).catch(() => {
-				cancel();
-			})
-		}, () => {
-			connection.close();
-		});
-	}).catch(() => { });
+	} catch (e) {
+		return;
+	}
+	var connection = null;
+	connection = new mssql.Connection(config, function(err) {
+		console.log("ERROR: " + err);
+	});
+
+	var output = vscode.window.createOutputChannel("sql");
+	output.show(vscode.ViewColumn.Two);
+	output.appendLine(`Connecting to server: ${config.server}`);
+
+	var sql: string;
+	while (
+		(sql = await vscode.window.showInputBox({
+			placeHolder: "SQL"
+		})) != undefined) {
+		output.appendLine(`SQL: ${sql}`);
+		try {
+			var recordset = await executeQuery(connection, sql);
+			if (!recordset) {
+				output.appendLine("Command completed");
+			} else {
+				showResult(output, recordset);
+			}
+		} catch (err) {
+			output.appendLine(err);
+		}
+	}
+	connection.close();
 }
 
-function askQuestion(options: vscode.InputBoxOptions) {
+async function askQuestion(options: vscode.InputBoxOptions) {
 	return new Promise<string>((resolve, reject) => {
 		vscode.window.showInputBox(options).then((input) => {
 			if (input !== undefined) {
@@ -89,19 +83,27 @@ function askQuestion(options: vscode.InputBoxOptions) {
 	});
 }
 
-type actionFunc = () => void;
-type loopFunc = (next: actionFunc, cancel?: actionFunc) => void;
-
-function loop(func: loopFunc, cancelFunc: actionFunc) {
-	func(() => loop(func, cancelFunc), cancelFunc);
+function executeQuery(connection: any, sql: string) {
+	return new Promise<any>((resolve, reject) => {
+		var request = new mssql.Request(connection);
+		request.query(sql, function(err, recordset) {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(recordset);
+			}
+		});
+	});
 }
 
 function showResult(output: vscode.OutputChannel, recordset) {
 	for (var row of recordset) {
-		output.append("|")
+		var rowOutput = [];
 		for (var col in row) {
-			output.append(` ${row[col]} |`)
+			rowOutput.push(row[col]);
 		}
-		output.appendLine("");
+		output.appendLine(
+			[""].concat(rowOutput).concat("").join("|")
+		);
 	}
 }
