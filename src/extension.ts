@@ -23,13 +23,16 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 async function connectCommand() {
-	var config: any = {};
+	var config: mssql.config = null;
 
 	try {
-		config.server = await askQuestion({
+		var server = await askQuestion({
 			placeHolder: "hostname\\instance",
 			prompt: "Enter hostname and optional instance name"
 		});
+		config = {
+			server
+		}
 		config.user = await askQuestion({
 			placeHolder: "Username",
 			prompt: "Enter username"
@@ -42,8 +45,7 @@ async function connectCommand() {
 	} catch (e) {
 		return;
 	}
-	var connection = null;
-	connection = new mssql.Connection(config, function(err) {
+	var connection = new mssql.Connection(config, function(err) {
 		console.log("ERROR: " + err);
 	});
 
@@ -83,7 +85,7 @@ async function askQuestion(options: vscode.InputBoxOptions) {
 	});
 }
 
-function executeQuery(connection: any, sql: string) {
+function executeQuery(connection: mssql.Connection, sql: string) {
 	return new Promise<any>((resolve, reject) => {
 		var request = new mssql.Request(connection);
 		request.query(sql, function(err, recordset) {
@@ -96,7 +98,7 @@ function executeQuery(connection: any, sql: string) {
 	});
 }
 
-function showResult(output: vscode.OutputChannel, recordset) {
+function showResult(output: vscode.OutputChannel, recordset: mssql.recordSet) {
 	for (var row of recordset) {
 		var rowOutput = [];
 		for (var col in row) {
