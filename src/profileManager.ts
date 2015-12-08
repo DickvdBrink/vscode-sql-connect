@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-var profiles: Profile[] = []; 
+var profiles: Profile[] = null;
 
 interface Profile {
 	id: string;
@@ -10,7 +10,9 @@ interface Profile {
 }
 
 function createProfile(profile: Profile) {
+	ensureLoadConfiguration();
 	profiles.push(profile);
+	saveConfiguration();
 }
 
 function getProfiles() {
@@ -18,6 +20,16 @@ function getProfiles() {
 }
 
 function removeProfile(id: string) {
+	ensureLoadConfiguration();
+}
+
+function ensureLoadConfiguration() {
+	if (profiles === null) {
+		profiles = [];
+	}
+}
+
+function saveConfiguration() {
 
 }
 
