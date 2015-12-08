@@ -12,7 +12,7 @@
 	],
 	"activationEvents": [
 		"onCommand:extension.sqlConnect",
-		"onCommand:extension.sqlDisconnect"
+		"onCommand:extension.createSqlProfile"
 	],
 	"main": "./out/src/extension",
 	"contributes": {
@@ -21,8 +21,8 @@
 			"title": "Connect SQL"
 		},
 		{
-			"command": "extension.sqlDisconnect",
-			"title": "Disconnect SQL"
+			"command": "extension.createSqlProfile",
+			"title": "Create SQL Profile"
 		}]
 	},
 	"scripts": {
