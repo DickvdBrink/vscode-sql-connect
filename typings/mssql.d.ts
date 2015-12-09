@@ -4,10 +4,9 @@
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
 
 /// <reference path="node.d.ts" />
-/// <reference path="es6-promise.d.ts" />
 
 declare module "mssql" {
-    import events = require('events'); 
+    import events = require('events');
 
     type sqlTypeWithNoParams       = { type: sqlTypeFactoryWithNoParams }
     type sqlTypeWithLength         = { type: sqlTypeFactoryWithLength, length: number }
