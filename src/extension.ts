@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as pm from './profileManager';
-import * as mssqlConnection from './providers/mssql';
+import * as connectionManager from './connectionManager';
 
 let profileManager: pm.ProfileManager = undefined;
 
@@ -51,17 +51,24 @@ async function connectCommand() {
 	if (!selectedItem) {
 		return;
 	}
-	mssqlConnection.connect(selectedItem.profile);
+	connectionManager.connect(selectedItem.profile);
 }
 
 async function createProfile() {
 	try {
+		const providers = connectionManager.getConnectionProviders();
+		const providerType = await vscode.window.showQuickPick(providers);
+		if (!providerType) {
+			return;
+		}
+
 		const server = await askQuestion({
 			placeHolder: "hostname\\instance",
 			prompt: "Enter hostname and optional instance name"
 		});
 		const profile: pm.Profile = {
 			id: server,
+			type: providerType,
 			host: server
 		};
 

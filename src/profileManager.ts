@@ -39,6 +39,7 @@ export class ProfileManager {
 
 export interface Profile {
 	id: string;
+	type: string;
 	host: string;
 	database?: string;
 	user?: string;
