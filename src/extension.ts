@@ -1,8 +1,8 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * as mssql from 'mssql';
 import * as pm from './profileManager';
+import * as mssqlConnection from './providers/mssql';
 
 var profileManager: pm.ProfileManager = undefined;
 
@@ -12,7 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "vscode-sql-connect" is now active!'); 
+	console.log('Congratulations, your extension "vscode-sql-connect" is now active!');
 
 	profileManager = new pm.ProfileManager(context);
 
@@ -52,55 +52,10 @@ async function connectCommand() {
 		return;
 	}
 	var profile = selectedItem.profile;
-	var config: mssql.config = {
-		server: profile.host,
-		user: profile.user,
-		database: profile.database
-	};
-	try {
-		config.password = await askQuestion({
-			password: true,
-			placeHolder: "Password",
-			prompt: "Enter password"
-		});
-	} catch (error) {
-		// Canceled, just quit
-		return;
-	}
-	var connection = new mssql.Connection(config);
-	try {
-		await connection.connect();
-	} catch(err) {
-		vscode.window.showErrorMessage("Error connectiong db: " + err);
-		return;
-	}
-
-	var output = vscode.window.createOutputChannel("sql");
-	output.show(vscode.ViewColumn.Two);
-	output.appendLine(`Connecting to server: ${config.server}`);
-
-	var sql: string;
-	while (
-		(sql = await vscode.window.showInputBox({
-			placeHolder: "SQL"
-		})) != undefined) {
-		output.appendLine(`SQL: ${sql}`);
-		try {
-			var recordset = await executeQuery(connection, sql);
-			if (!recordset) {
-				output.appendLine("Command completed");
-			} else {
-				showResult(output, recordset);
-			}
-		} catch (err) {
-			output.appendLine(err);
-		}
-	}
-	connection.close();
+	mssqlConnection.connect(profile);
 }
 
 async function createProfile() {
-
 	try {
 		var server = await askQuestion({
 			placeHolder: "hostname\\instance",
@@ -136,29 +91,4 @@ async function askQuestion(options: vscode.InputBoxOptions) {
 			}
 		})
 	});
-}
-
-function executeQuery(connection: mssql.Connection, sql: string) {
-	return new Promise<any>((resolve, reject) => {
-		var request = new mssql.Request(connection);
-		request.query(sql, function(err, recordset) {
-			if (err) {
-				reject(err);
-			} else {
-				resolve(recordset);
-			}
-		});
-	});
-}
-
-function showResult(output: vscode.OutputChannel, recordset: mssql.recordSet) {
-	for (var row of recordset) {
-		var rowOutput = [];
-		for (var col in row) {
-			rowOutput.push(row[col]);
-		}
-		output.appendLine(
-			[""].concat(rowOutput).concat("").join("|")
-		);
-	}
 }
