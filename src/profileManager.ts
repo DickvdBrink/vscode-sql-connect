@@ -1,36 +1,47 @@
+"use strict"
+
 import * as vscode from 'vscode';
 
-var profiles: Profile[] = null;
+export class ProfileManager {
+	private profiles: Profile[] = undefined;
 
-interface Profile {
+	constructor(private context: vscode.ExtensionContext) {
+	}
+
+	public createProfile(profile: Profile): void {
+		this.ensureLoadConfiguration();
+		this.profiles.push(profile);
+		this.saveConfiguration();
+	}
+
+	public getProfiles(): Profile[] {
+		this.ensureLoadConfiguration();
+		return this.profiles;
+	}
+
+	public removeProfile(id: string): void {
+		this.ensureLoadConfiguration();
+		var index = this.profiles.findIndex((value) => value.id == id);
+		if (index != -1) {
+			this.profiles = this.profiles.splice(index, 1);
+		}
+		this.saveConfiguration();
+	}
+
+	private ensureLoadConfiguration(): void {
+		if (this.profiles === undefined) {
+			this.profiles = this.context.globalState.get<Profile[]>("profiles", []);
+		}
+	}
+
+	private saveConfiguration(): void {
+		this.context.globalState.update("profiles", this.profiles);
+	}
+}
+
+export interface Profile {
 	id: string;
 	host: string;
 	database?: string;
 	user?: string;
 }
-
-function createProfile(profile: Profile) {
-	ensureLoadConfiguration();
-	profiles.push(profile);
-	saveConfiguration();
-}
-
-function getProfiles() {
-	return profiles;
-}
-
-function removeProfile(id: string) {
-	ensureLoadConfiguration();
-}
-
-function ensureLoadConfiguration() {
-	if (profiles === null) {
-		profiles = [];
-	}
-}
-
-function saveConfiguration() {
-
-}
-
-export { Profile, createProfile, getProfiles, removeProfile };

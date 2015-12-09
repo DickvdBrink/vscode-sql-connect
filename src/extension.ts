@@ -1,8 +1,12 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+"use strict"
+
 import * as vscode from 'vscode';
 import * as mssql from 'mssql';
-import * as profileManager from './profileManager';
+import * as pm from './profileManager';
+
+var profileManager: pm.ProfileManager = undefined;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -11,6 +15,8 @@ export function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "vscode-sql-connect" is now active!'); 
+
+	profileManager = new pm.ProfileManager(context);
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
@@ -31,12 +37,27 @@ export function activate(context: vscode.ExtensionContext) {
 
 async function connectCommand() {
 	var profiles = profileManager.getProfiles();
-	var id = await vscode.window.showQuickPick(profiles.map((a) => a.id));
 
+	interface IConnectQuickPickItem extends vscode.QuickPickItem {
+		profile: pm.Profile;
+	}
+
+	var items = profiles.map((item) => {
+		return <IConnectQuickPickItem>{
+			label: item.host,
+			description: `${item.host} - ${item.database}`,
+			profile: item
+		}
+	});
+	var selectedItem: IConnectQuickPickItem = await vscode.window.showQuickPick<IConnectQuickPickItem>(items);
+	if (!selectedItem) {
+		return;
+	}
+	var profile = selectedItem.profile;
 	var config: mssql.config = {
-		server: profiles[0].host,
-		user: profiles[0].user,
-		database: profiles[0].database
+		server: profile.host,
+		user: profile.user,
+		database: profile.database
 	};
 	try {
 		config.password = await askQuestion({
@@ -81,17 +102,21 @@ async function connectCommand() {
 }
 
 async function createProfile() {
-	var profile: profileManager.Profile;
 
 	try {
 		var server = await askQuestion({
 			placeHolder: "hostname\\instance",
 			prompt: "Enter hostname and optional instance name"
 		});
-		profile = {
+		var profile: pm.Profile = {
 			id: server,
 			host: server
 		};
+
+		profile.database = await askQuestion({
+			placeHolder: "database",
+			prompt: "Enter database (optional)"
+		});
 
 		profile.user = await askQuestion({
 			placeHolder: "Username",
