@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import * as pm from './profileManager';
 import * as mssqlConnection from './providers/mssql';
 
-var profileManager: pm.ProfileManager = undefined;
+let profileManager: pm.ProfileManager = undefined;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -19,12 +19,12 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
-	var cmdConnect = vscode.commands.registerCommand('extension.sqlConnect', () => {
+	const cmdConnect = vscode.commands.registerCommand('extension.sqlConnect', () => {
 		// The code you place here will be executed every time your command is executed
 		connectCommand();
 	});
 
-	var cmdCreateProfile = vscode.commands.registerCommand('extension.createSqlProfile', () => {
+	const cmdCreateProfile = vscode.commands.registerCommand('extension.createSqlProfile', () => {
 		// The code you place here will be executed every time your command is executed
 		createProfile();
 	});
@@ -34,34 +34,33 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 async function connectCommand() {
-	var profiles = profileManager.getProfiles();
+	const profiles = profileManager.getProfiles();
 
 	interface IConnectQuickPickItem extends vscode.QuickPickItem {
 		profile: pm.Profile;
 	}
 
-	var items = profiles.map((item) => {
+	const items = profiles.map((item) => {
 		return <IConnectQuickPickItem>{
 			label: item.host,
 			description: `${item.host} - ${item.database}`,
 			profile: item
 		}
 	});
-	var selectedItem: IConnectQuickPickItem = await vscode.window.showQuickPick<IConnectQuickPickItem>(items);
+	const selectedItem: IConnectQuickPickItem = await vscode.window.showQuickPick<IConnectQuickPickItem>(items);
 	if (!selectedItem) {
 		return;
 	}
-	var profile = selectedItem.profile;
-	mssqlConnection.connect(profile);
+	mssqlConnection.connect(selectedItem.profile);
 }
 
 async function createProfile() {
 	try {
-		var server = await askQuestion({
+		const server = await askQuestion({
 			placeHolder: "hostname\\instance",
 			prompt: "Enter hostname and optional instance name"
 		});
-		var profile: pm.Profile = {
+		const profile: pm.Profile = {
 			id: server,
 			host: server
 		};

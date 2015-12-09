@@ -19,7 +19,7 @@ export class ProfileManager {
 
 	public removeProfile(id: string): void {
 		this.ensureLoadConfiguration();
-		var index = this.profiles.findIndex((value) => value.id == id);
+		const index = this.profiles.findIndex((value) => value.id == id);
 		if (index != -1) {
 			this.profiles = this.profiles.splice(index, 1);
 		}
