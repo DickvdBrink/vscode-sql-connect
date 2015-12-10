@@ -21,7 +21,7 @@ export class ProfileManager {
 		this.ensureLoadConfiguration();
 		const index = this.profiles.findIndex((value) => value.id == id);
 		if (index != -1) {
-			this.profiles = this.profiles.splice(index, 1);
+			this.profiles.splice(index, 1);
 		}
 		this.saveConfiguration();
 	}

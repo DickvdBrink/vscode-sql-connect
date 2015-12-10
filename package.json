@@ -12,17 +12,22 @@
 	],
 	"activationEvents": [
 		"onCommand:extension.sqlConnect",
-		"onCommand:extension.createSqlProfile"
+		"onCommand:extension.sqlCreateProfile",
+		"onCommand:extension.sqlRemoveProfile"
 	],
 	"main": "./out/src/extension",
 	"contributes": {
 		"commands": [{
 			"command": "extension.sqlConnect",
-			"title": "Connect SQL"
+			"title": "SQL: Connect"
 		},
 		{
-			"command": "extension.createSqlProfile",
-			"title": "Create SQL Profile"
+			"command": "extension.sqlCreateProfile",
+			"title": "SQL: Create profile"
+		},
+		{
+			"command": "extension.sqlRemoveProfile",
+			"title": "SQL: Remove profile"
 		}]
 	},
 	"scripts": {

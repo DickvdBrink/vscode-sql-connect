@@ -11,21 +11,24 @@ export function activate(context: vscode.ExtensionContext) {
 		connectCommand();
 	});
 
-	const cmdCreateProfile = vscode.commands.registerCommand('extension.createSqlProfile', () => {
+	const cmdCreateProfile = vscode.commands.registerCommand('extension.sqlCreateProfile', () => {
 		createProfile();
+	});
+	const cmdRemoveProfile = vscode.commands.registerCommand('extension.sqlRemoveProfile', () => {
+		removeProfile();
 	});
 
 	context.subscriptions.push(cmdConnect);
 	context.subscriptions.push(cmdCreateProfile);
+	context.subscriptions.push(cmdRemoveProfile);
 }
 
-async function connectCommand() {
+interface IConnectQuickPickItem extends vscode.QuickPickItem {
+	profile: pm.Profile;
+}
+
+async function selectProfile() {
 	const profiles = profileManager.getProfiles();
-
-	interface IConnectQuickPickItem extends vscode.QuickPickItem {
-		profile: pm.Profile;
-	}
-
 	const items = profiles.map((item) => {
 		return <IConnectQuickPickItem>{
 			label: item.host,
@@ -33,11 +36,16 @@ async function connectCommand() {
 			profile: item
 		}
 	});
-	const selectedItem: IConnectQuickPickItem = await vscode.window.showQuickPick<IConnectQuickPickItem>(items);
-	if (!selectedItem) {
+	const selectedItem = await vscode.window.showQuickPick<IConnectQuickPickItem>(items);
+	return (selectedItem ? selectedItem.profile : null);
+}
+
+async function connectCommand() {
+	var profile = await selectProfile();
+	if (!profile) {
 		return;
 	}
-	connectionManager.connect(selectedItem.profile);
+	connectionManager.connect(profile);
 }
 
 async function createProfile() {
@@ -71,6 +79,14 @@ async function createProfile() {
 	} catch (e) {
 		return;
 	}
+}
+
+async function removeProfile() {
+	var profile = await selectProfile();
+	if (!profile) {
+		return;
+	}
+	profileManager.removeProfile(profile.id);
 }
 
 async function askQuestion(options: vscode.InputBoxOptions) {
