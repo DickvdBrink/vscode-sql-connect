@@ -9,6 +9,13 @@ const providerMap: { [index: string]: ConnectionProvider } = {
 	'mssql': mssqlConnection
 }
 
+const providers = [
+	{
+		id: 'mssql',
+		description: 'Microsoft SQLServer connection provider'
+	}
+]
+
 export function connect(profile: pm.Profile) {
 	const provider = providerMap[profile.type];
 	if (!provider) {
@@ -18,5 +25,5 @@ export function connect(profile: pm.Profile) {
 }
 
 export function getConnectionProviders() {
-	return ['mssql'];
+	return providers;
 }

@@ -51,7 +51,17 @@ async function connectCommand() {
 async function createProfile() {
 	try {
 		const providers = connectionManager.getConnectionProviders();
-		const providerType = await vscode.window.showQuickPick(providers);
+
+		const items = providers.map((item) => {
+			return {
+				label: item.id,
+				description: item.description,
+			}
+		});
+
+		const providerType = await vscode.window.showQuickPick(items, {
+			placeHolder: "Choose connection provider"
+		});
 		if (!providerType) {
 			return;
 		}
@@ -62,7 +72,7 @@ async function createProfile() {
 		});
 		const profile: pm.Profile = {
 			id: server,
-			type: providerType,
+			type: providerType.label,
 			host: server
 		};
 
