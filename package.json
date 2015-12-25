@@ -4,6 +4,17 @@
 	"description": "Connect to SQL Server from vscode",
 	"version": "0.0.1",
 	"publisher": "dvdbrink",
+	"author": {
+		"name": "Dick van den Brink",
+		"url": "https://github.com/DickvdBrink"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/DickvdBrink/vscode-sql-connect"
+	},
+	"bugs": {
+		"url": "https://github.com/DickvdBrink/vscode-sql-connect/issues"
+	},
 	"engines": {
 		"vscode": "^0.10.1"
 	},
@@ -17,18 +28,20 @@
 	],
 	"main": "./out/src/extension",
 	"contributes": {
-		"commands": [{
-			"command": "extension.sqlConnect",
-			"title": "SQL: Connect"
-		},
-		{
-			"command": "extension.sqlCreateProfile",
-			"title": "SQL: Create profile"
-		},
-		{
-			"command": "extension.sqlRemoveProfile",
-			"title": "SQL: Remove profile"
-		}]
+		"commands": [
+			{
+				"command": "extension.sqlConnect",
+				"title": "SQL: Connect"
+			},
+			{
+				"command": "extension.sqlCreateProfile",
+				"title": "SQL: Create profile"
+			},
+			{
+				"command": "extension.sqlRemoveProfile",
+				"title": "SQL: Remove profile"
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "node ./node_modules/vscode/bin/compile",

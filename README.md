@@ -1,13 +1,17 @@
-# README
-## This is the README for your extension "vscode-sql-connect" 
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
+# vscode-sql-connect
 
-* Split the editor (`Cmd+\` on OSX or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on OSX or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (OSX) to see a list of Markdown snippets
+`vscode-sql-connect` is a [Visual Studio Code](https://code.visualstudio.com) plugin. It makes it possible to connect to a database from within the editor and execute statements.
 
-### For more information
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+## Commands
+The plugin adds the following commands to the editor, all prefixed by `SQL`.
 
-** Enjoy!**
+|Command|Description|
+|-----------------|-----------|
+| Connect         | Connect to a database - you must first create a profile to do this |
+| Create Profile  | Create a profile, enter hostname, database and other connection info |
+| Remove Profile  | Remove a profile, by selecting it from the list|
+
+## Supported providers
+
+Currently only Microsoft SQL Server is supported.
+
