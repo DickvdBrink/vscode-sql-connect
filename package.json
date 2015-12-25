@@ -2,7 +2,7 @@
 	"name": "vscode-sql-connect",
 	"displayName": "vscode-sql-connect",
 	"description": "Connect to SQL Server from vscode",
-	"version": "0.0.1",
+	"version": "0.2.0",
 	"publisher": "dvdbrink",
 	"author": {
 		"name": "Dick van den Brink",
