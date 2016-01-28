@@ -5,16 +5,14 @@ interface ConnectionProvider {
 	connect(profile: pm.Profile): void;
 }
 
-const providerMap: { [index: string]: ConnectionProvider } = {
-	'mssql': mssqlConnection
-}
+const providerMap: { [index: string]: ConnectionProvider } = { };
+const providers: { id: string, description: string }[] = [];
 
-const providers = [
-	{
-		id: 'mssql',
-		description: 'Microsoft SQLServer connection provider'
-	}
-]
+(function() {
+	const sqlProviders = mssqlConnection.getConnectionProviders();
+	providers.push.apply(providers, sqlProviders);
+	sqlProviders.forEach((item) => { providerMap[item.id] = mssqlConnection; });
+})();
 
 export function connect(profile: pm.Profile) {
 	const provider = providerMap[profile.type];

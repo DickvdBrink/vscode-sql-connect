@@ -3,6 +3,20 @@ import * as mssql from 'mssql';
 
 import * as pm from './../profileManager';
 
+const mssqlId = "mssql";
+const azureId = "azure";
+
+export function getConnectionProviders() {
+	return [{
+		id: mssqlId,
+		description: 'Microsoft SQLServer Connection Provider'
+	},
+	{
+		id: azureId,
+		description: 'Azure / Microsoft SQLServer Connection Provider (encrypted)'
+	}];
+}
+
 export async function connect(profile: pm.Profile) {
 	const password = await vscode.window.showInputBox({
 		password: true,
@@ -20,6 +34,9 @@ export async function connect(profile: pm.Profile) {
 		user: profile.user,
 		password: password
 	};
+	if (profile.type == azureId) {
+		config.options = { encrypt:  true };
+	}
 
 	const connection = new mssql.Connection(config);
 	try {
